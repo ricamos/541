@@ -1,0 +1,71 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+
+      #sudo yum install yum-utils device-mapper-persistent-data lvm2 -y
+    - name: Instalando pacotes de dependencias para o Docker
+      tags:
+        - dependencias
+      yum:
+        name: ['yum-utils ', 'device-mapper-persistent-data', 'lvm2',]
+
+      #centos  
+      #sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      #redhat https://docs.docker.com/engine/install/rhel/  
+    - name: Add repository Docker-ce
+      tags:
+        - repo
+      ansible.builtin.command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      when: ansible_facts['os_family'] == "RedHat"     
+
+      #sudo yum install docker-ce docker-ce-cli containerd.io -y  
+    - name: Instalando o Docker
+      tags:
+        - docker
+      yum:
+        name: ['docker-ce', 'docker-ce-cli', 'containerd.io' ]    
+
+      #systemctl start docker   
+    - name: Iniciando o serviço do Docker
+      tags:
+        - docker_start
+      ansible.builtin.systemd:
+        state: started
+        name: docker 
+
+      #vim /etc/docker/daemon.json  
+    - name: Criando json-file Docker
+      tags:
+        - docker_file
+      copy:
+        dest: "/etc/docker/daemon.json"
+        content: |
+          {
+            "exec-opts": ["native.cgroupdriver=systemd"],
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "100m"
+            },
+            "storage-driver": "overlay2",
+            "storage-opts": [
+              "overlay2.override_kernel_check=true"
+              ]
+          }
+      
+      #systemctl daemon-reload
+      #systemctl restart docker    
+    - name: Reiniciando Serviço Docker
+      tags:
+        - docker_restart
+      ansible.builtin.systemd:
+        state: restarted
+        daemon_reload: yes
+        name: docker      
+
+#teste do Docker
+#systemctl status docker
+#docker info
+#docker run hello-world
