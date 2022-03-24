@@ -1,0 +1,59 @@
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Criando kubernetes repo
+      tags:
+        - kube_repo
+      copy:
+        dest: "/etc/yum.repos.d/kubernetes.repo"
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+          enabled=1
+          gpgcheck=1
+          repo_gpgcheck=1
+          gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+    - name: Instalando o Kubernetes
+      tags:
+        - kube_install
+      yum:
+        name: ['kubelet-1.23.5 ', 'kubeadm-1.23.5', 'kubectl-1.23.5']
+        disable_excludes: kubernetes
+
+    - name: Iniciando o serviço do Kubernetes
+      tags:
+        - kube_start
+      ansible.builtin.systemd:
+        state: started
+        name: kubelet
+
+    - name: Instalando bash-completion
+      tags:
+        - bash_completion
+      yum:
+        name: ['bash-completion']
+
+    - name: Editando bash-completion
+      tags:
+          - bash_completion
+          - bash_edit
+      shell: "source /usr/share/bash-completion/bash_completion && \
+      for i in $(find /home/* -maxdepth 0); do echo 'source <(kubectl completion bash)' >> $i/.bashrc && echo 'source <(kubeadm completion bash)' >> $i/.bashrc; done"           
+    
+    - name: Desabilitando Swap inicialização
+      tags:
+        - swapoff
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '(.*swap.*)'
+        replace: '#\1'
+
+    - name: Desabilitando Swap agora
+      tags:
+          - swapoff
+      shell: "swapoff -a" 
+   
