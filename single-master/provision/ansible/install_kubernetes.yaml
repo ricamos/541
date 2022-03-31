@@ -30,6 +30,7 @@
       ansible.builtin.systemd:
         state: started
         name: kubelet
+        enabled: yes
 
     - name: Instalando bash-completion
       tags:

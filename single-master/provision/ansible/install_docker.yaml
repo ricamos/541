@@ -35,7 +35,8 @@
       ansible.builtin.systemd:
         state: started
         name: docker 
-
+        enabled: yes
+            
       #vim /etc/docker/daemon.json  
     - name: Criando json-file Docker
       tags:
