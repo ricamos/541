@@ -17,6 +17,19 @@
           repo_gpgcheck=1
           gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 
+    - name: Allow connections on multiple ports
+      tags:
+        - iptables_rule
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_ports:
+          - "6443"
+          - "2379-2380"
+          - "10250-10252"
+          - "30000-32767"
+        jump: ACCEPT
+      
     - name: Instalando o Kubernetes
       tags:
         - kube_install
