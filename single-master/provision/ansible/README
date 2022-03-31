@@ -1,0 +1,13 @@
+1 - Kube Single master - Single Master
+	Kube single node1 - Node1
+	Kube single node2 - Node2  
+
+2 - install Docker - All nodes
+3 - Install Kubernetes - All nodes
+4 - Install cluster kubernetes - Single master
+
+Ansible playbook apply
+ansible-playbook --private-key "ssh_file_key" -u user playbook_file.yaml --limit=only_host --tag "tag"
+ansible-playbook --private-key "~/Downloads/ricardo_coelho.pem" -u ec2-user install_cluster_kubernetes.yaml --limit=single-master --tag "image_pull"
+
+ansible --private-key "~/Downloads/ricardo_coelho.pem" -u ec2-user single-master -m ping
