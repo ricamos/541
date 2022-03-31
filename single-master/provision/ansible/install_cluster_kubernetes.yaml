@@ -1,0 +1,30 @@
+---
+- hosts: single-master
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Images pull
+      tags:
+        - images_pull
+      ansible.builtin.command: kubeadm config images pull --kubernetes-version=1.23.5
+    
+    - name: Init cluster
+      tags:
+        - init_cluster
+      ansible.builtin.command: kubeadm init --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=172.31.85.217 --kubernetes-version=1.23.5 --ignore-preflight-errors=all
+
+    - name: Permissão
+      tags:
+        - permissao
+      ansible.builtin.command: mkdir -p $HOME/.kube && cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && chown $(id -u):$(id -g) $HOME/.kube/config  
+    
+    - name: Calico plugin
+      tags:
+        - calico_plugin
+      ansible.builtin.command: kubectl apply -f https://docs.projectcalico.org/v3.10/manifests/calico.yaml
+
+    - name: Permissão
+      tags:
+        - permissao
+      ansible.builtin.command: mkdir -p $HOME/.kube && cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && chown $(id -u):$(id -g) $HOME/.kube/config
