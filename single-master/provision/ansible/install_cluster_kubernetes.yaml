@@ -3,6 +3,10 @@
   become: yes
   become_user: root
   become_method: sudo
+  vars:
+    ip_address: "{{ ansible_eth0.ipv4.address }}"
+    network: "{{ansible_default_ipv4.network}}" 
+
   tasks:
     - name: Images pull
       tags:
@@ -12,19 +16,15 @@
     - name: Init cluster
       tags:
         - init_cluster
-      ansible.builtin.command: kubeadm init --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=172.31.85.217 --kubernetes-version=1.23.5 --ignore-preflight-errors=all
+      ansible.builtin.command: kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address={{ ip_address }} --kubernetes-version=1.23.5 --ignore-preflight-errors=all
 
     - name: Permissão
       tags:
         - permissao
-      ansible.builtin.command: mkdir -p $HOME/.kube && cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && chown $(id -u):$(id -g) $HOME/.kube/config  
-    
+      shell: "for i in $(find /home/* -maxdepth 0); do mkdir -p $i/.kube && cp -i /etc/kubernetes/admin.conf $i/.kube/config && chown $(id -u):$(id -g) $i/.kube/config; done"
+
     - name: Calico plugin
       tags:
         - calico_plugin
-      ansible.builtin.command: kubectl apply -f https://docs.projectcalico.org/v3.10/manifests/calico.yaml
+      ansible.builtin.command: kubectl apply -f https://docs.projectcalico.org/v3.21/manifests/calico.yaml
 
-    - name: Permissão
-      tags:
-        - permissao
-      ansible.builtin.command: mkdir -p $HOME/.kube && cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && chown $(id -u):$(id -g) $HOME/.kube/config

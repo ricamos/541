@@ -25,8 +25,8 @@
         protocol: tcp
         source_port: "{{ item }}"
         jump: ACCEPT
-        comment: ftp
-      with_items: [ '6443', '2379:2380', '10250:10252', '30000:32767' ]
+        comment: kubernetes
+      with_items: [ '6443', '2379:2380', '10245:10255', '30000:32767' ]
         
     - name: Instalando o Kubernetes
       tags:
